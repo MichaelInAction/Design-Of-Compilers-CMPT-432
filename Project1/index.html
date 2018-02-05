@@ -6,19 +6,21 @@
         <link rel="stylesheet" href="index.css">
 </head>
 <body>
+  <script src="Project1.js" type="text/javascript"></script>
   <h1>Michael Read's Compilers Project</h1>
   <h2>Currently only able to lex</h2>
-  <p>Enter your input code here</p>
-  <script src="Project1.js" type="text/javascript"></script>
-  <textarea rows="20", cols="100" id="inputArea"></textarea>
-  </br>
-  </br>
-  <button type="button" onclick="beginCompile()">Compile</button>
-  </br>
-  </br>
-  <p>Output:</p>
-  <textarea readonly rows="20", cols="100" id="outputArea"></textarea>
-
+  <div class="buttonWrapper">
+    <button onclick="beginCompile()">Compile</button>
+  </div>
+  <div class="inline">
+    <p>Enter your input code here:</p>
+    <textarea rows="20", cols="80" id="inputArea"></textarea>
+  </div>
+  <div class="inline">
+    <p>Output:</p>
+    <textarea readonly rows="20", cols="80" id="outputArea"></textarea>
+  </div>
+    
   <script>
     function beginCompile(){
       var output = "";
@@ -34,6 +36,11 @@
         }
         for(i = 0; i < warnings.length; i++){
           output = output + "LEXER: " + warnings[i].type + " on line " + warnings[i].line + "\n";
+        }
+        if(warnings.length != 0){
+          var token = {type:"END_OF_PROGRAM_TOKEN", value:"$", line:warnings[warnings.length-1].line};
+          tokens.push(token);
+          output = output + "LEXER: Added concluding END_OF_PROGRAM_TOKEN to line " + tokens[tokens.length-1].line + "\n";
         }
         output = output + "Lexing completed with ";               
       }

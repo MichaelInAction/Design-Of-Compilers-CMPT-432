@@ -1,7 +1,53 @@
 body {
-    background-color:#87CEEB;
+    background: linear-gradient(270deg, #34216E, #4F1B6B);
+    background-size: 600% 600%;
+    animation: BackgroundGradient 30s ease infinite;
+    text-shadow: 2px 2px 2px #1F042D;
+}
+
+@keyframes BackgroundGradient {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
 }
 
 textarea{
     resize: none;
+    box-shadow: 10px 10px 5px #1F042D;
+}
+
+button {
+    background-color: #9167A8;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    transition-duration: 0.4s;
+    -webkit-transition-duration: 0.4s;
+}
+button:hover {
+    background-color:#73458D;
+}
+
+h1, h2, p {
+    color: #A47ABB;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+.inline {
+    display:inline-block;
+    padding: 15px 30px;
+}
+
+p {
+    text-align: left;
+}
+
+.buttonWrapper {
+    text-align: center;
 }
