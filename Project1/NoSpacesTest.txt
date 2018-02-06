@@ -1,0 +1,1 @@
+{inta=0booleanb=truewhile(b)print(a)a=a+1}$

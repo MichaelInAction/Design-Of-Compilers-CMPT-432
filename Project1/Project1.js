@@ -204,7 +204,7 @@ function lexInput(input, tokens, warnings, errors){
             //Finally, if it has not yet been found to be a valid character, and it is not a space, carriage return, or newline character,
             //it must be an invalid character, so we push an invalid character error, log so in the console, and continue to see if
             //there are other errors
-            else if(input.substring(i, i+1) != " " && input.substring(i, i+1) != "\r" && input.substring(i, i+1) != "\n"){
+            else if(input.substring(i, i+1) != " " && input.substring(i, i+1) != "\r" && input.substring(i, i+1) != "\n" && input.substring(i, i+1) != "\t"){
                 var error = {type:"INVALID_CHARACTER_ERROR", value:input.substring(i, i+1), line:lineNumber};
                 console.log("Found ".concat(error.type, " ", error.value));
                 errors.push(error);
