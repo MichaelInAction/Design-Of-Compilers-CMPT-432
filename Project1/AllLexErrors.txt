@@ -1,0 +1,10 @@
+{
+	string A = "a"
+	string b = "1"
+	string c = "
+	"
+	string d = "this string will not end
+	/*neither will this comment
+}$
+
+This program will give 6 errors, which include all 5 lex errors, of which the newline in string error appears twice

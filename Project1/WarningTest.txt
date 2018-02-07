@@ -1,1 +1,3 @@
 {/*this program is missing an end of program character*/}
+
+This program will finish with one warning, as it is missing the end of program character, and will also ignore everything in the comments
