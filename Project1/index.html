@@ -1,7 +1,7 @@
 <!Doctype html>
 <html>
 <head>
-	<title>Lab 0</title>
+	<title>Mike's Compiler</title>
 	<meta charset="utf-8"/>
         <link rel="stylesheet" href="index.css">
 </head>
@@ -14,7 +14,7 @@
   </div>
   <div class="inline">
     <p>Enter your input code here:</p>
-    <textarea rows="20", cols="80" id="inputArea"></textarea>
+    <div id="editor" style="height: 300px; width: 600px"></div>
   </div>
   <div class="inline">
     <p>Output:</p>
@@ -25,7 +25,7 @@
     function beginCompile(){
       var output = "";
       output = output + "Begin Lexing...\n"
-      var input = document.getElementById("inputArea").value;
+      var input = editor.getValue();
       var tokens = [];
       var errors = [];
       var warnings = [];
@@ -46,7 +46,7 @@
       }
       else{
         for(i = 0; i < errors.length; i++){
-          output = output + "LEXER: " + errors[i].type + "\n";
+          output = output + "LEXER: " + errors[i].type + " on line " + errors[i].line +  "\n";
         }
         output = output + "Lexing failed with ";               
       }
@@ -54,6 +54,12 @@
       output = output + warnings.length + " warnings and " + errors.length + " errors\n";               
       document.getElementById("outputArea").value = output;
     }
+   </script>
+
+  <script src="ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/chrome");
   </script>
   
 </body>

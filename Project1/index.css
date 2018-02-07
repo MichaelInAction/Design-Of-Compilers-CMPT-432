@@ -2,7 +2,6 @@ body {
     background: linear-gradient(270deg, #34216E, #4F1B6B);
     background-size: 600% 600%;
     animation: BackgroundGradient 30s ease infinite;
-    text-shadow: 2px 2px 2px #1F042D;
 }
 
 @keyframes BackgroundGradient {
@@ -13,7 +12,8 @@ body {
 
 textarea{
     resize: none;
-    box-shadow: 10px 10px 5px #1F042D;
+    background-color: black;
+    color: white;
 }
 
 button {
@@ -33,6 +33,7 @@ button:hover {
 
 h1, h2, p {
     color: #A47ABB;
+    text-shadow: 2px 2px 2px #1F042D;
 }
 
 h1, h2 {

@@ -129,11 +129,20 @@ function lexInput(input, tokens, warnings, errors){
                 }
             }
             else if(validNumbers.test(input.substring(i, i+1))){
-                //If it's a valid numeric character, we push an integer token, log it in the console, then continue
-                var token = {type:"INTEGER_TOKEN", value:input.substring(i, i+1), line:lineNumber};
-                console.log("pushing ".concat(token.value));
-                tokens.push(token);
-                continue;
+                //If we are in quotes and it's a numeric character, return an error, as we cannot have numbers in strings
+                if(inQuotes){
+                    var error = {type:"INTEGER_IN_STRING_ERROR", value:input.substring(i, i+1), line:lineNumber};
+                    console.log("pushing ".concat(error.value));
+                    errors.push(error);
+                    continue
+                }
+                //Otherwise, create an integer token, log it, and push it, then continue
+                else {
+                    var token = {type:"INTEGER_TOKEN", value:input.substring(i, i+1), line:lineNumber};
+                    console.log("pushing ".concat(token.value));
+                    tokens.push(token);
+                    continue;
+                }
             }
             //Otherwise, we check if it's any of the valid symbolic characters. If it is, we push the appropriate token,
             //log it in the console, then continue
@@ -201,6 +210,14 @@ function lexInput(input, tokens, warnings, errors){
                 tokens.push(token);
                 continue;
             }
+            //Next, we check if there is a newline character inside of a string
+            else if(inQuotes && (input.substring(i, i+1) == "\n" || input.substring(i, i+1) == "\r")){
+                var error = {type:"NEWLINE_IN_STRING_ERROR", line:lineNumber};
+                console.log("pushing ".concat(error.value));
+                errors.push(error);
+                lineNumber = lineNumber + 1;
+                continue;
+            }
             //Finally, if it has not yet been found to be a valid character, and it is not a space, carriage return, or newline character,
             //it must be an invalid character, so we push an invalid character error, log so in the console, and continue to see if
             //there are other errors
@@ -231,6 +248,18 @@ function lexInput(input, tokens, warnings, errors){
         var warning = {type:"MISSING_END_PROGRAM_WARNING", line:lineNumber};
         console.log("Missing End of Program Character");
         warnings.push(warning);
+    }
+    //If we are still in a string, throw an unfinished string error
+    if(inQuotes){
+        var error = {type:"UNFINISHED_STRING_ERROR", line:lineNumber};
+        console.log("Found Unterminated String");
+        errors.push(error);
+    }
+    //If we are still in a comment, throw an unfinished comment error
+    if(inComment){
+        var error = {type:"UNFINISHED_COMMENT_ERROR", line:lineNumber};
+        console.log("Found Unterminated Comment");
+        errors.push(error);
     }
     //Log in the console that we have finished
     console.log("Lexing complete");
