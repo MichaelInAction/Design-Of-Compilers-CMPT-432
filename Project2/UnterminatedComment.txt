@@ -1,0 +1,3 @@
+{/*this comment does not end$
+
+This program finishes with one error as there is an unterminated comment

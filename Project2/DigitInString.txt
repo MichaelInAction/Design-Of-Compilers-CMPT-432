@@ -1,0 +1,5 @@
+{
+	string a = "1"
+}$
+
+This program will give one error, as digits are not valid characters in strings in our language

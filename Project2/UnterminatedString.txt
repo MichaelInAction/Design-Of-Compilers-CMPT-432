@@ -1,0 +1,3 @@
+{ string a = "hi$
+
+This program will lex with one error, as there is an unterminated string
