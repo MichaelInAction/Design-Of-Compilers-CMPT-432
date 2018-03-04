@@ -23,6 +23,8 @@
     <textarea readonly rows="20", cols="80" id="outputArea"></textarea>
   </div>
   <div class="tables">
+  <p>CST:</p>
+  <textarea readonly rows="20", cols="80" id="CST"></textarea>
   </div>
     
   <script>
@@ -31,6 +33,7 @@
       var input = editor.getValue();
       var tokens = [];
       var FirstNode = {parent:null, value:"PROGRAM", children:[]};
+      var CST = "";
       var errors = [];
       var warnings = [];
       var program;
@@ -84,8 +87,10 @@
             }
           }
           else{
-            output = output + "PARSER: Successful Parse...\nNow outputting Constructed CST\n";
-            output = output + recurseThroughTree(FirstNode, 0);
+            output = output + "PARSER: Successful Parse...\nNow Constructing CST...\n";
+            CST = CST + "~~~Program " + counter + "~~~\n"
+            CST = CST + recurseThroughTree(FirstNode, 0) + "\n";
+         
           }
         }
         else{
@@ -97,8 +102,10 @@
         var tokens = [];
         var errors = [];
         var warnings = [];
+        var FirstNode = {parent:null, value:"PROGRAM", children:[]};
       }
       document.getElementById("outputArea").value = output;
+      document.getElementById("CST").value = CST;
     }
     function recurseThroughTree(Node, depth){
       var ret = "";

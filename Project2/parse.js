@@ -199,6 +199,7 @@ function parseCharList(){
   CurrentNode = NewNode;
   if(tokens[0].type == "CHARACTER_TOKEN"){
     matchToken(tokens.shift(), "CHARACTER_TOKEN");
+    parseCharList();
   }
   else {
     //Epsilon Production
