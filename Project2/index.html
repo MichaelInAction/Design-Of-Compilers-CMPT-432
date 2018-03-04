@@ -30,7 +30,7 @@
       var output = "";
       var input = editor.getValue();
       var tokens = [];
-      var tree = [];
+      var FirstNode = {parent:null, value:"PROGRAM", children:[]};
       var errors = [];
       var warnings = [];
       var program;
@@ -77,16 +77,15 @@
         if(errors.length == 0){
           errors = [];
           output = output + "\nBegin Parsing Program " + counter + "...\n";
-          parseProgram(tokens, tree, warnings, errors);
+          parseProgram(tokens, FirstNode, warnings, errors);
           if(errors.length > 0){
             for(i = 0; i < errors.length; i++){
               output = output + "PARSER: " + errors[i].type + " On line " + errors[i].line + ": Found " + errors[i].value + "; Expected " + errors[i].expected + "\n";
             }
           }
           else{
-            for(i = 0; i < tree.length; i++){
-              output = output + "PARSER: " + tree[i] + "\n";
-            }
+            output = output + "PARSER: Successful Parse...\nNow outputting Constructed CST\n";
+            output = output + recurseThroughTree(FirstNode, 0);
           }
         }
         else{
@@ -100,6 +99,23 @@
         var warnings = [];
       }
       document.getElementById("outputArea").value = output;
+    }
+    function recurseThroughTree(Node, depth){
+      var ret = "";
+      for(var j = 0; j < depth; j++){
+        console.log(depth);
+        ret = ret + "-";
+      }
+      if(Node.children.length == 0){
+        ret = ret + Node.value + "\n";
+      }
+      else{
+        ret = ret + "<" + Node.value + ">\n";
+        for(var i = 0; i < Node.children.length; i++){
+          ret = ret + recurseThroughTree(Node.children[i], depth+1);
+        }
+      }
+      return ret;
     }
    </script>
 
