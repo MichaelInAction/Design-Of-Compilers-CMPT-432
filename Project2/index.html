@@ -23,10 +23,10 @@
     <textarea readonly rows="20", cols="80" id="outputArea"></textarea>
   </div>
   <div class="tables">
-  <p>CST:</p>
-  <textarea readonly rows="20", cols="80" id="CST"></textarea>
+  	<p>CST:</p>
+  	<textarea readonly rows="20", cols="80" id="CST"></textarea>
   </div>
-    
+
   <script>
     function beginCompile(){
       var output = "";
@@ -36,6 +36,7 @@
       var CST = "";
       var errors = [];
       var warnings = [];
+			var symbols = [];
       var program;
       var counter = 1;
       var lineNumber = 1;
@@ -48,7 +49,7 @@
           program = input.substring(0, input.indexOf("$") + 1);
           input = input.substring(input.indexOf("$") + 1);
         }
-        output = output + "Begin Lexing Program " + counter + "...\n"; 
+        output = output + "Begin Lexing Program " + counter + "...\n";
         lineNumber = lexInput(program, tokens, warnings, errors, lineNumber);
         if(errors.length == 0) {
           for(i = 0; i < tokens.length; i++){
@@ -62,7 +63,7 @@
             tokens.push(token);
             output = output + "LEXER: Added concluding END_OF_PROGRAM_TOKEN to line " + tokens[tokens.length-1].line + "\n";
           }
-          output = output + "Lexing completed with ";               
+          output = output + "Lexing completed with ";
         }
         else{
           for(i = 0; i < errors.length; i++){
@@ -73,25 +74,27 @@
               output = output + "LEXER: " + errors[i].type + " on line " + errors[i].line +  "\n";
             }
           }
-          output = output + "Lexing failed with ";               
-        }             
-        output = output + warnings.length + " warnings and " + errors.length + " errors\n";  
-  
+          output = output + "Lexing failed with ";
+        }
+        output = output + warnings.length + " warnings and " + errors.length + " errors\n";
+
         if(errors.length == 0){
           errors = [];
           output = output + "\nBegin Parsing Program " + counter + "...\n";
-          parseProgram(tokens, FirstNode, warnings, errors);
-          if(errors.length > 0){
-            for(i = 0; i < errors.length; i++){
-              output = output + "PARSER: " + errors[i].type + " On line " + errors[i].line + ": Found " + errors[i].value + "; Expected " + errors[i].expected + "\n";
-            }
-          }
-          else{
-            output = output + "PARSER: Successful Parse...\nNow Constructing CST...\n";
+          output = output + parseProgram(tokens, FirstNode, symbols, warnings, errors);
+          if(errors.length == 0){
+            output = output + "PARSER: Successful Parse...\nPARSER: Now Constructing CST...\n";
             CST = CST + "~~~Program " + counter + "~~~\n"
             CST = CST + recurseThroughTree(FirstNode, 0) + "\n";
-         
+						output = output + "PARSER: Outputting Symbol Table...\n\n";
+						output = output + "Type\tID\tLine\n";
+						for(var i = 0; i < symbols.length; i++){
+							output = output + symbols[i].type + "\t" + symbols[i].id + "\t" + symbols[i].line + "\n";
+						}
           }
+					else{
+						output = output + "Due to errors, will not continue to the Semantic Analysis phase";
+					}
         }
         else{
           output = output + "Due to errors, will not continue to the Parse phase";
@@ -100,6 +103,7 @@
         output = output + "\n\n";
         counter++;
         var tokens = [];
+				var symbols = [];
         var errors = [];
         var warnings = [];
         var FirstNode = {parent:null, value:"PROGRAM", children:[]};
@@ -114,7 +118,7 @@
         ret = ret + "-";
       }
       if(Node.children.length == 0){
-        ret = ret + Node.value + "\n";
+        ret = ret + "[" + Node.value + "]\n";
       }
       else{
         ret = ret + "<" + Node.value + ">\n";
@@ -131,6 +135,6 @@
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/chrome");
   </script>
-  
+
 </body>
 </html>
