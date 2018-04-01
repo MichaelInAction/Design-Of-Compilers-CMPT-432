@@ -4,6 +4,7 @@ var symbols;
 var warnings;
 var errors;
 var output;
+var count;
 
 function parseProgram(tokens, FirstNode, symbols, warnings, errors){
   console.log("Begin Parsing...");
@@ -13,24 +14,26 @@ function parseProgram(tokens, FirstNode, symbols, warnings, errors){
   this.symbols = symbols;
   this.warnings = warnings;
   this.errors = errors;
+  this.count = 0;
   parseBlock();
-  matchToken(tokens.shift(), "END_OF_PROGRAM_TOKEN");
+  matchToken(tokens, "END_OF_PROGRAM_TOKEN");
   return output;
 }
 
 function matchToken(token, expectedValue){
   if(errors.length == 0){
-    if(token.type == expectedValue){
+    if(tokens[count].type == expectedValue){
       console.log("Match found");
-      var NewNode = {parent:CurrentNode, value:token.value, children:[]};
+      var NewNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
       CurrentNode.children.push(NewNode);
-      output = output + "PARSER: Found " + token.type + "; Expecting " + expectedValue + "\n";
+      output = output + "PARSER: Found " + tokens[count].type + "; Expecting " + expectedValue + "\n";
+      this.count = this.count + 1;
     }
     else{
-      console.log("Error: Found " + token.type + "; expected: " + expectedValue);
-      var error = {type:"INCORRECT_CHARACTER_ERROR", value:token.type, expected:expectedValue, line:token.line};
+      console.log("Error: Found " + tokens[count].type + "; expected: " + expectedValue);
+      var error = {type:"INCORRECT_CHARACTER_ERROR", value:tokens[count].type, expected:expectedValue, line:tokens[count].line};
       errors.push(error);
-      output = output + "PARSER: INCORRECT_CHARACTER_ERROR! Found " + token.type + "; Expecting " + expectedValue + " on line " + token.line + "\n";
+      output = output + "PARSER: INCORRECT_CHARACTER_ERROR! Found " + tokens[count].type + "; Expecting " + expectedValue + " on line " + tokens[count].line + "\n";
     }
   }
 }
@@ -41,9 +44,9 @@ function parseBlock(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    matchToken(tokens.shift(), "OPEN_BRACKET_TOKEN");
+    matchToken(tokens, "OPEN_BRACKET_TOKEN");
     parseStatementList();
-    matchToken(tokens.shift(), "CLOSE_BRACKET_TOKEN");
+    matchToken(tokens, "CLOSE_BRACKET_TOKEN");
     CurrentNode = NewNode.parent;
   }
 }
@@ -54,7 +57,7 @@ function parseStatementList(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    if((tokens[0].type == "PRINT_TOKEN") || (tokens[0].type == "ID_TOKEN") || (tokens[0].type == "VAR_TYPE_TOKEN") || (tokens[0].type == "WHILE_TOKEN") || (tokens[0].type == "IF_TOKEN") || (tokens[0].type == "OPEN_BRACKET_TOKEN")){
+    if((tokens[count].type == "PRINT_TOKEN") || (tokens[count].type == "ID_TOKEN") || (tokens[count].type == "VAR_TYPE_TOKEN") || (tokens[count].type == "WHILE_TOKEN") || (tokens[count].type == "IF_TOKEN") || (tokens[count].type == "OPEN_BRACKET_TOKEN")){
       parseStatement();
       parseStatementList();
     }
@@ -72,22 +75,22 @@ function parseStatement(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    if(tokens[0].type == "PRINT_TOKEN"){
+    if(tokens[count].type == "PRINT_TOKEN"){
       parsePrintStatement();
     }
-    else if(tokens[0].type == "ID_TOKEN"){
+    else if(tokens[count].type == "ID_TOKEN"){
       parseAssignmentStatement();
     }
-    else if(tokens[0].type == "VAR_TYPE_TOKEN"){
+    else if(tokens[count].type == "VAR_TYPE_TOKEN"){
       parseVarDecl();
     }
-    else if(tokens[0].type == "WHILE_TOKEN"){
+    else if(tokens[count].type == "WHILE_TOKEN"){
       parseWhileStatement();
     }
-    else if(tokens[0].type == "IF_TOKEN"){
+    else if(tokens[count].type == "IF_TOKEN"){
       parseIfStatement();
     }
-    else if(tokens[0].type == "OPEN_BRACKET_TOKEN"){
+    else if(tokens[count].type == "OPEN_BRACKET_TOKEN"){
       parseBlock();
     }
     CurrentNode = NewNode.parent;
@@ -100,10 +103,10 @@ function parsePrintStatement(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    matchToken(tokens.shift(), "PRINT_TOKEN");
-    matchToken(tokens.shift(), "OPEN_PAREN_TOKEN");
+    matchToken(tokens, "PRINT_TOKEN");
+    matchToken(tokens, "OPEN_PAREN_TOKEN");
     parseExpr();
-    matchToken(tokens.shift(), "CLOSE_PAREN_TOKEN");
+    matchToken(tokens, "CLOSE_PAREN_TOKEN");
     CurrentNode = NewNode.parent;
   }
 }
@@ -115,7 +118,7 @@ function parseAssignmentStatement(){
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
     parseId();
-    matchToken(tokens.shift(), "ASSIGNMENT_TOKEN");
+    matchToken(tokens, "ASSIGNMENT_TOKEN");
     parseExpr();
     CurrentNode = NewNode.parent;
   }
@@ -127,9 +130,9 @@ function parseVarDecl(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    var NewSymbol = {id:tokens[1].value , type:tokens[0].value , line:tokens[0].line};
+    var NewSymbol = {id:tokens[count + 1].value , type:tokens[count].value , line:tokens[count].line};
     symbols.push(NewSymbol);
-    matchToken(tokens.shift(), "VAR_TYPE_TOKEN");
+    matchToken(tokens, "VAR_TYPE_TOKEN");
     parseId();
     CurrentNode = NewNode.parent;
   }
@@ -141,7 +144,7 @@ function parseWhileStatement(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    matchToken(tokens.shift(), "WHILE_TOKEN");
+    matchToken(tokens, "WHILE_TOKEN");
     parseBooleanExpr();
     parseBlock();
     CurrentNode = NewNode.parent;
@@ -154,7 +157,7 @@ function parseIfStatement(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    matchToken(tokens.shift(), "IF_TOKEN");
+    matchToken(tokens, "IF_TOKEN");
     parseBooleanExpr();
     parseBlock();
     CurrentNode = NewNode.parent;
@@ -167,16 +170,16 @@ function parseExpr(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    if(tokens[0].type == "INTEGER_TOKEN"){
+    if(tokens[count].type == "INTEGER_TOKEN"){
       parseIntExpr();
     }
-    else if(tokens[0].type == "QUOTE_TOKEN"){
+    else if(tokens[count].type == "QUOTE_TOKEN"){
       parseStringExpr();
     }
-    else if(tokens[0].type == "OPEN_PAREN_TOKEN"){
+    else if(tokens[count].type == "OPEN_PAREN_TOKEN"){
       parseBooleanExpr();
     }
-    else if(tokens[0].type == "ID_TOKEN"){
+    else if(tokens[count].type == "ID_TOKEN"){
       parseId();
     }
     CurrentNode = NewNode.parent;
@@ -189,9 +192,9 @@ function parseIntExpr(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    matchToken(tokens.shift(), "INTEGER_TOKEN");
-    if(tokens[0].type == "ADDITION_TOKEN"){
-      matchToken(tokens.shift(), "ADDITION_TOKEN");
+    matchToken(tokens, "INTEGER_TOKEN");
+    if(tokens[count].type == "ADDITION_TOKEN"){
+      matchToken(tokens, "ADDITION_TOKEN");
       parseExpr();
     }
     CurrentNode = NewNode.parent;
@@ -204,9 +207,9 @@ function parseStringExpr(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    matchToken(tokens.shift(), "QUOTE_TOKEN");
+    matchToken(tokens, "QUOTE_TOKEN");
     parseCharList();
-    matchToken(tokens.shift(), "QUOTE_TOKEN");
+    matchToken(tokens, "QUOTE_TOKEN");
     CurrentNode = NewNode.parent;
   }
 }
@@ -217,12 +220,12 @@ function parseBooleanExpr(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    if(tokens[0].type == "OPEN_PAREN_TOKEN"){
-      matchToken(tokens.shift(), "OPEN_PAREN_TOKEN");
+    if(tokens[count].type == "OPEN_PAREN_TOKEN"){
+      matchToken(tokens, "OPEN_PAREN_TOKEN");
       parseExpr();
       parseBoolOp();
       parseExpr();
-      matchToken(tokens.shift(), "CLOSE_PAREN_TOKEN");
+      matchToken(tokens, "CLOSE_PAREN_TOKEN");
     }
     else {
       parseBoolVal();
@@ -237,7 +240,7 @@ function parseId(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    matchToken(tokens.shift(), "ID_TOKEN");
+    matchToken(tokens, "ID_TOKEN");
     CurrentNode = NewNode.parent;
   }
 }
@@ -248,8 +251,8 @@ function parseCharList(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    if(tokens[0].type == "CHARACTER_TOKEN"){
-      matchToken(tokens.shift(), "CHARACTER_TOKEN");
+    if(tokens[count].type == "CHARACTER_TOKEN"){
+      matchToken(tokens, "CHARACTER_TOKEN");
       parseCharList();
     }
     else {
@@ -266,11 +269,11 @@ function parseBoolOp(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    if(tokens[0].type == "INEQUALITY_COMPARATOR_TOKEN"){
-      matchToken(tokens.shift(), "INEQUALITY_COMPARATOR_TOKEN");
+    if(tokens[count].type == "INEQUALITY_COMPARATOR_TOKEN"){
+      matchToken(tokens, "INEQUALITY_COMPARATOR_TOKEN");
     }
     else{
-      matchToken(tokens.shift(), "EQUALITY_COMPARATOR_TOKEN");
+      matchToken(tokens, "EQUALITY_COMPARATOR_TOKEN");
     }
     CurrentNode = NewNode.parent;
   }
@@ -282,7 +285,7 @@ function parseBoolVal(){
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
     output = output + "PARSER: Parsing " + CurrentNode.value + "...\n";
-    matchToken(tokens.shift(), "BOOL_VAL_TOKEN");
+    matchToken(tokens, "BOOL_VAL_TOKEN");
     CurrentNode = NewNode.parent;
   }
 }
