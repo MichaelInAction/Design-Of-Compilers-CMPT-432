@@ -1,0 +1,8 @@
+{
+	int a = 0
+	if(true){
+		print(a)
+	}
+}$
+
+This program will return a complete and valid set of tokens with no warnings or errors

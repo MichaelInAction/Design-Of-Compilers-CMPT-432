@@ -1,0 +1,3 @@
+{inta=0booleanb=truewhile(b)print(a)a=a+1}$
+
+This program will complete with a complete and valid set of character tokens, showing that spaces are not required for the lexer to work

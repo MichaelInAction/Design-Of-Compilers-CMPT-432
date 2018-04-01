@@ -1,0 +1,6 @@
+{
+	string a = "hello
+there"
+}$
+
+This program will finish with one error, as a newline character is not a valid character in a string
