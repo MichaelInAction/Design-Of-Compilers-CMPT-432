@@ -50,7 +50,7 @@ function lexInput(input, tokens, warnings, errors, startingLineNumber){
                 continue;
             }
             //Otherwise, check if it's a letter
-            else if(validLetters.test(input.substring(i, i+1))){
+            else if(validLetters.test(input.substring(i, i+1)) || input.substring(i, i+1) == " "){
                 if(inQuotes){
                     //If it's a letter and in quotes, push a character token with the character as a value
                     //log it in the console, then continue

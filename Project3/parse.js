@@ -176,7 +176,7 @@ function parseExpr(){
     else if(tokens[count].type == "QUOTE_TOKEN"){
       parseStringExpr();
     }
-    else if(tokens[count].type == "OPEN_PAREN_TOKEN"){
+    else if(tokens[count].type == "OPEN_PAREN_TOKEN" || tokens[count].type == "BOOL_VAL_TOKEN"){
       parseBooleanExpr();
     }
     else if(tokens[count].type == "ID_TOKEN"){
