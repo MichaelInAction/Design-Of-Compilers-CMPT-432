@@ -8,6 +8,7 @@
 <body>
   <script src="lex.js" type="text/javascript"></script>
   <script src="parse.js" type="text/javascript"></script>
+	<script src="semanticAnalysis.js" type="text/javascript"></script>
   <h1>Michael Read's Compilers Project</h1>
   <h2>Currently able to lex AND parse</h2>
   <h3>Oooooh....Aaaaahhh</h3>
@@ -23,8 +24,8 @@
     <textarea readonly rows="20", cols="80" id="outputArea"></textarea>
   </div>
   <div class="tables">
-  	<p>CST:</p>
-  	<textarea readonly rows="20", cols="80" id="CST"></textarea>
+  	<p>CSSS:</p>
+  	<textarea readonly rows="20", cols="80" id="CSSS"></textarea>
   </div>
 
   <script>
@@ -33,7 +34,8 @@
       var input = editor.getValue();
       var tokens = [];
       var FirstNode = {parent:null, value:"PROGRAM", children:[]};
-      var CST = "";
+      var CSSS = "";
+			var ASSS = "";
       var errors = [];
       var warnings = [];
 			var symbols = [];
@@ -83,13 +85,21 @@
           output = output + "\nBegin Parsing Program " + counter + "...\n";
           output = output + parseProgram(tokens, FirstNode, symbols, warnings, errors);
           if(errors.length == 0){
-            output = output + "PARSER: Successful Parse...\nPARSER: Now Constructing CST...\n";
-            CST = CST + "~~~Program " + counter + "~~~\n"
-            CST = CST + recurseThroughTree(FirstNode, 0) + "\n";
+            output = output + "PARSER: Successful Parse...\nPARSER: Now Constructing CSSS...\n";
+            CSSS = CSSS + "~~~Program " + counter + "~~~\n"
+            CSSS = CSSS + recurseThroughTree(FirstNode, 0) + "\n";
 						output = output + "PARSER: Outputting Symbol Table...\n\n";
 						output = output + "Type\tID\tLine\n";
 						for(var i = 0; i < symbols.length; i++){
 							output = output + symbols[i].type + "\t" + symbols[i].id + "\t" + symbols[i].line + "\n";
+						}
+						errors = [];
+						warnings = [];
+						output = output + "\nBegin Semantic Analysis of Program " + counter + "...\n";
+						output = output + checkSemantics(tokens, symbols, warnings, errors);
+						if(errors.length == 0){
+							output = output + "SA: Successful pass through Semantic Analysis...\nSA: Now Constructing ASSS...\n";
+							ASSS = ASSS + "~~~Program " + counter + "~~~\n";
 						}
           }
 					else{
@@ -109,7 +119,7 @@
         var FirstNode = {parent:null, value:"PROGRAM", children:[]};
       }
       document.getElementById("outputArea").value = output;
-      document.getElementById("CST").value = CST;
+      document.getElementById("CSSS").value = CSSS;
     }
     function recurseThroughTree(Node, depth){
       var ret = "";

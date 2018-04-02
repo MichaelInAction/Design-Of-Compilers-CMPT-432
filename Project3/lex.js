@@ -49,8 +49,14 @@ function lexInput(input, tokens, warnings, errors, startingLineNumber){
                 console.log("flipping inQuotes");
                 continue;
             }
+            else if(input.substring(i, i+1) == " " && inQuotes){
+              var token = {type:"CHARACTER_TOKEN", value:input.substring(i, i+1), line:lineNumber};
+              console.log("pushing ".concat(token.value));
+              tokens.push(token);
+              continue;
+            }
             //Otherwise, check if it's a letter
-            else if(validLetters.test(input.substring(i, i+1)) || input.substring(i, i+1) == " "){
+            else if(validLetters.test(input.substring(i, i+1))){
                 if(inQuotes){
                     //If it's a letter and in quotes, push a character token with the character as a value
                     //log it in the console, then continue
