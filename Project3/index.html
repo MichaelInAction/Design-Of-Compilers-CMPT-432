@@ -26,6 +26,8 @@
   <div class="tables">
   	<p>CSSS:</p>
   	<textarea readonly rows="20", cols="80" id="CSSS"></textarea>
+		<p>ASSS:</p>
+  	<textarea readonly rows="20", cols="80" id="ASSS"></textarea>
   </div>
 
   <script>
@@ -95,11 +97,13 @@
 						}
 						errors = [];
 						warnings = [];
+						FirstNode = {parent:null, value:"PROGRAM", children:[]};
 						output = output + "\nBegin Semantic Analysis of Program " + counter + "...\n";
-						output = output + checkSemantics(tokens, symbols, warnings, errors);
+						output = output + checkSemantics(tokens, FirstNode, symbols, warnings, errors);
 						if(errors.length == 0){
 							output = output + "SA: Successful pass through Semantic Analysis...\nSA: Now Constructing ASSS...\n";
 							ASSS = ASSS + "~~~Program " + counter + "~~~\n";
+							ASSS = ASSS + recurseThroughTree(FirstNode, 0) + "\n";
 						}
           }
 					else{
@@ -120,6 +124,7 @@
       }
       document.getElementById("outputArea").value = output;
       document.getElementById("CSSS").value = CSSS;
+			document.getElementById("ASSS").value = ASSS;
     }
     function recurseThroughTree(Node, depth){
       var ret = "";
