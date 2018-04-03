@@ -48,7 +48,6 @@ function block(){
 function statementList(){
   if((tokens[count].type == "PRINT_TOKEN") || (tokens[count].type == "ID_TOKEN") || (tokens[count].type == "VAR_TYPE_TOKEN") || (tokens[count].type == "WHILE_TOKEN") || (tokens[count].type == "IF_TOKEN") || (tokens[count].type == "OPEN_BRACKET_TOKEN")){
     console.log("SA: Statement List");
-    count++;
     statement();
     statementList();
   }
@@ -62,7 +61,7 @@ function statement(){
     printStatement();
   }
   else if(tokens[count].type == "ID_TOKEN"){
-    sssignmentStatement();
+    assignmentStatement();
   }
   else if(tokens[count].type == "VAR_TYPE_TOKEN"){
     varDecl();
@@ -79,73 +78,136 @@ function statement(){
 }
 
 function printStatement(){
-
+  count++;
+  count++;
+  var NewNode = {parent:CurrentNode, value:"Print", children:[]};
+  CurrentNode.children.push(NewNode);
+  CurrentNode = NewNode;
+  expr();
+  CurrentNode = NewNode.parent;
+  count++;
 }
 
 function assignmentStatement(){
-
+  var NewNode = {parent:CurrentNode, value:"Assignment", children:[]};
+  CurrentNode.children.push(NewNode);
+  CurrentNode = NewNode;
+  var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+  CurrentNode.children.push(varNode);
+  count++;
+  count++;
+  expr();
+  CurrentNode = NewNode.parent;
 }
 
 function varDecl(){
-
+  var NewNode = {parent:CurrentNode, value:"Variable Declaration", children:[]};
+  CurrentNode.children.push(NewNode);
+  CurrentNode = NewNode;
+  var typeNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+  CurrentNode.children.push(typeNode);
+  count++;
+  var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+  CurrentNode.children.push(varNode);
+  count++;
+  CurrentNode = NewNode.parent;
 }
 
 function whileStatement(){
-
+  count++;
+  var NewNode = {parent:CurrentNode, value:"While", children:[]};
+  CurrentNode.children.push(NewNode);
+  CurrentNode = NewNode;
+  booleanExpr();
+  block();
+  CurrentNode = NewNode.parent;
 }
 
 function ifStatement(){
-
+  count++;
+  var NewNode = {parent:CurrentNode, value:"If", children:[]};
+  CurrentNode.children.push(NewNode);
+  CurrentNode = NewNode;
+  booleanExpr();
+  block();
+  CurrentNode = NewNode.parent;
 }
 
 function expr(){
-
+  if(tokens[count].type == "INTEGER_TOKEN"){
+    intExpr();
+  }
+  else if(tokens[count].type == "QUOTE_TOKEN"){
+    stringExpr();
+  }
+  else if(tokens[count].type == "OPEN_PAREN_TOKEN" || tokens[count].type == "BOOL_VAL_TOKEN"){
+    booleanExpr();
+  }
+  else if(tokens[count].type == "ID_TOKEN"){
+    var newNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+    CurrentNode.children.push(newNode);
+    count++;
+  }
 }
 
 function intExpr(){
-
+  if(tokens[count+1].type == "ADDITION_TOKEN"){
+    var NewNode = {parent:CurrentNode, value:"Addition", children:[]};
+    CurrentNode.children.push(NewNode);
+    CurrentNode = NewNode;
+    var numNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+    CurrentNode.children.push(numNode);
+    count++;
+    count++;
+    expr();
+    CurrentNode = NewNode.parent;
+  }
+  else{
+    var numNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+    CurrentNode.children.push(numNode);
+    count++;
+  }
 }
 
 function stringExpr(){
-
+  count++;
+  charList();
+  count++;
 }
 
 function booleanExpr(){
-
-}
-
-function id(){
-
+  if(tokens[count].type == "OPEN_PAREN_TOKEN"){
+    count++;
+    if(tokens[count+1].type == "INEQUALITY_COMPARATOR_TOKEN"){
+      var NewNode = {parent:CurrentNode, value:"Not Equals", children:[]};
+      CurrentNode.children.push(NewNode);
+      CurrentNode = NewNode;
+    }
+    else{
+      var NewNode = {parent:CurrentNode, value:"Is Equal", children:[]};
+      CurrentNode.children.push(NewNode);
+      CurrentNode = NewNode;
+    }
+    expr();
+    count++;
+    expr();
+    count++;
+    CurrentNode = NewNode.parent;
+  }
+  else {
+    var NewNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+    CurrentNode.children.push(NewNode);
+    count++
+  }
 }
 
 function charList(){
-
-}
-
-function type(){
-
-}
-
-function char(){
-
-}
-
-function space(){
-
-}
-
-function digit(){
-
-}
-
-function boolop(){
-
-}
-
-function boolval(){
-
-}
-
-function intop(){
-
+  //This
+  var tempString = "";
+  while(tokens[count].type != "QUOTE_TOKEN"){
+    tempString = tempString + tokens[count].value;
+    count++;
+  }
+  var NewNode = {parent:CurrentNode, value:tempString, children:[]};
+  CurrentNode.children.push(NewNode);
 }
