@@ -1,26 +1,24 @@
 var tokens;
-var symbols;
 var warnings;
 var errors;
 var output;
 var count;
+var CurrentNode;
 var scopes;
 var currentScope;
-var nextScope;
-var CurrentNode;
+var nextScopeNum;
 
-function checkSemantics(tokens, FirstNode, symbols, warnings, errors){
+function checkSemantics(tokens, FirstNode, scopes, warnings, errors){
   console.log("Begin Semantic Analysis...");
   output = "";
-  scopes = [];
-  currentScope = 0;
-  nextScope = 1;
   count = 0;
   this.tokens = tokens;
   CurrentNode = FirstNode;
-  this.symbols = symbols;
   this.warnings = warnings;
   this.errors = errors;
+  this.scopes = scopes;
+  currentScope = null;
+  nextScopeNum = 0;
   block();
   return output;
 }
@@ -30,16 +28,16 @@ function block(){
     console.log("SA: Block");
     //Next token is a {
     count++;
-    var temp = {scope:nextScope, outerScope:currentScope};
-    scopes.push(temp);
-    currentScope = nextScope;
-    nextScope = nextScope + 1;
     var NewNode = {parent:CurrentNode, value:"BLOCK", children:[]};
     CurrentNode.children.push(NewNode);
     CurrentNode = NewNode;
+    var tempScope = {outerScope:currentScope, scopeNum:nextScopeNum, variables:[]};
+    scopes.push(tempScope);
+    currentScope = tempScope;
+    nextScopeNum = nextScopeNum + 1;
     statementList();
     CurrentNode = NewNode.parent;
-    currentScope = temp.outerScope;
+    currentScope = tempScope.outerScope;
     //Next token is a }
     count++;
   }
@@ -109,6 +107,26 @@ function varDecl(){
   count++;
   var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
   CurrentNode.children.push(varNode);
+  var tempNode = CurrentNode;
+  var alreadyDeclared = false;
+  console.log(currentScope.variables.length);
+  for(var i = 0; i < currentScope.variables.length; i++){
+    if(currentScope.variables[i].id == varNode.value){
+      alreadyDeclared = true;
+      console.log("Found a redeclaration error");
+      break;
+    }
+  }
+  if(!alreadyDeclared){
+    var newVar = {id:varNode.value, type:typeNode.value};
+    currentScope.variables.push(newVar);
+  }
+  else{
+    var error = {type:"VARIABLE_REDECLARATION_ERROR", line:tokens[count].line};
+    errors.push(error);
+    output = output + "SA: VARIABLE_REDECLARATION_ERROR! Variable " +
+    varNode.value + " in scope " + currentScope.scopeNum + " on line " + tokens[count].line + "\n";
+  }
   count++;
   CurrentNode = NewNode.parent;
 }

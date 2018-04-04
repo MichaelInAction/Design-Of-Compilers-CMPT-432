@@ -99,19 +99,32 @@
 						warnings = [];
 						FirstNode = {parent:null, value:"PROGRAM", children:[]};
 						output = output + "\nBegin Semantic Analysis of Program " + counter + "...\n";
+						symbols = [];
 						output = output + checkSemantics(tokens, FirstNode, symbols, warnings, errors);
 						if(errors.length == 0){
 							output = output + "SA: Successful pass through Semantic Analysis...\nSA: Now Constructing ASSS...\n";
 							ASSS = ASSS + "~~~Program " + counter + "~~~\n";
 							ASSS = ASSS + recurseThroughTree(FirstNode, 0) + "\n";
+							output = output + "SA: Printing out the new symbol table...\n";
+							output = output + "Type\tID\tScope\n";
+							for(var i = 0; i < symbols.length; i++){
+								for(var j = 0; j < symbols[i].variables.length; j++){
+									output = output + symbols[i].variables[j].type + "\t"
+									+ symbols[i].variables[j].id + "\t" + symbols[i].scopeNum + "\n";
+								}
+							}
+						}
+						else{
+							output = output + "SA: Completed with " + errors.length + " errors and " + warnings.length + " warnings\n";
+							output = output + "Due to errors, will not continue to the CodeGen phase\n";
 						}
           }
 					else{
-						output = output + "Due to errors, will not continue to the Semantic Analysis phase";
+						output = output + "Due to errors, will not continue to the Semantic Analysis phase\n";
 					}
         }
         else{
-          output = output + "Due to errors, will not continue to the Parse phase";
+          output = output + "Due to errors, will not continue to the Parse phase\n";
         }
 
         output = output + "\n\n";
