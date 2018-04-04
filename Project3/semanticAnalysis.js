@@ -44,7 +44,9 @@ function block(){
 }
 
 function statementList(){
-  if((tokens[count].type == "PRINT_TOKEN") || (tokens[count].type == "ID_TOKEN") || (tokens[count].type == "VAR_TYPE_TOKEN") || (tokens[count].type == "WHILE_TOKEN") || (tokens[count].type == "IF_TOKEN") || (tokens[count].type == "OPEN_BRACKET_TOKEN")){
+  if((tokens[count].type == "PRINT_TOKEN") || (tokens[count].type == "ID_TOKEN")
+  || (tokens[count].type == "VAR_TYPE_TOKEN") || (tokens[count].type == "WHILE_TOKEN")
+  || (tokens[count].type == "IF_TOKEN") || (tokens[count].type == "OPEN_BRACKET_TOKEN")){
     console.log("SA: Statement List");
     statement();
     statementList();
@@ -92,9 +94,39 @@ function assignmentStatement(){
   CurrentNode = NewNode;
   var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
   CurrentNode.children.push(varNode);
+  var alreadyDeclared = false;
+  var tempScope = currentScope;
+  var varType = "";
+  while(tempScope != null){
+    console.log("checking scope");
+    for(var i = 0; i < tempScope.variables.length; i++){
+      console.log(tempScope.variables[i].id);
+      if(tempScope.variables[i].id == varNode.value){
+        varType = tempScope.variables[i].type;
+        alreadyDeclared = true;
+        break;
+      }
+    }
+    if(alreadyDeclared){
+      break;
+    }
+    tempScope = tempScope.outerScope;
+  }
+  if(!alreadyDeclared){
+    var error = {type:"UNDECLARED_VARIABLE_ERROR", line:tokens[count].line};
+    errors.push(error);
+    output = output + "SA: UNDECLARED_VARIABLE_ERROR! Variable " +
+    varNode.value + " in scope " + currentScope.scopeNum + " on line "
+    + tokens[count].line + "\n";
+  }
   count++;
   count++;
-  expr();
+  if(errors.length == 0){
+    expr(varType);
+  }
+  else{
+    expr();
+  }
   CurrentNode = NewNode.parent;
 }
 
@@ -118,14 +150,15 @@ function varDecl(){
     }
   }
   if(!alreadyDeclared){
-    var newVar = {id:varNode.value, type:typeNode.value};
+    var newVar = {id:varNode.value, type:typeNode.value, line:tokens[count].line};
     currentScope.variables.push(newVar);
   }
   else{
     var error = {type:"VARIABLE_REDECLARATION_ERROR", line:tokens[count].line};
     errors.push(error);
     output = output + "SA: VARIABLE_REDECLARATION_ERROR! Variable " +
-    varNode.value + " in scope " + currentScope.scopeNum + " on line " + tokens[count].line + "\n";
+    varNode.value + " in scope " + currentScope.scopeNum + " on line "
+    + tokens[count].line + "\n";
   }
   count++;
   CurrentNode = NewNode.parent;
@@ -162,9 +195,106 @@ function expr(){
     booleanExpr();
   }
   else if(tokens[count].type == "ID_TOKEN"){
-    var newNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
-    CurrentNode.children.push(newNode);
+    var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+    CurrentNode.children.push(varNode);
+    var alreadyDeclared = false;
+    var tempScope = currentScope;
+    while(tempScope != null){
+      console.log("checking scope");
+      for(var i = 0; i < tempScope.variables.length; i++){
+        console.log(tempScope.variables[i].id);
+        if(tempScope.variables[i].id == varNode.value){
+
+          alreadyDeclared = true;
+          break;
+        }
+      }
+      if(alreadyDeclared){
+        break;
+      }
+      tempScope = tempScope.outerScope;
+    }
+    if(!alreadyDeclared){
+      var error = {type:"UNDECLARED_VARIABLE_ERROR", line:tokens[count].line};
+      errors.push(error);
+      output = output + "SA: UNDECLARED_VARIABLE_ERROR! Variable " +
+      varNode.value + " in scope " + currentScope.scopeNum + " on line "
+      + tokens[count].line + "\n";
+    }
     count++;
+  }
+}
+
+function expr(type){
+  if(tokens[count].type == "INTEGER_TOKEN" && type == "int"){
+    intExpr();
+  }
+  else if(tokens[count].type == "QUOTE_TOKEN" && type == "string"){
+    stringExpr();
+  }
+  else if((tokens[count].type == "OPEN_PAREN_TOKEN" || tokens[count].type == "BOOL_VAL_TOKEN") && type == "boolean"){
+    booleanExpr();
+  }
+  else if(tokens[count].type == "ID_TOKEN"){
+    var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
+    CurrentNode.children.push(varNode);
+    var alreadyDeclared = false;
+    var tempScope = currentScope;
+    var tempType = "";
+    while(tempScope != null){
+      console.log("checking scope");
+      for(var i = 0; i < tempScope.variables.length; i++){
+        console.log(tempScope.variables[i].id);
+        if(tempScope.variables[i].id == varNode.value){
+          tempType = tempScope.variables[i].type;
+          alreadyDeclared = true;
+          break;
+        }
+      }
+      if(alreadyDeclared){
+        break;
+      }
+      tempScope = tempScope.outerScope;
+    }
+    if(!alreadyDeclared){
+      var error = {type:"UNDECLARED_VARIABLE_ERROR", line:tokens[count].line};
+      errors.push(error);
+      output = output + "SA: UNDECLARED_VARIABLE_ERROR! Variable " +
+      varNode.value + " in scope " + currentScope.scopeNum + " on line "
+      + tokens[count].line + "\n";
+    }
+    if(type != tempType){
+      var error = {type:"TYPE_MISMATCH_ERROR", line:tokens[count].line};
+      errors.push(error);
+      output = output + "SA: TYPE_MISMATCH_ERROR! Variable " +
+      varNode.value + " in scope " + currentScope.scopeNum + " on line "
+      + tokens[count].line + ". Found type " + tempType + ", expected type "
+      + type + "\n";
+    }
+    count++;
+  }
+  else{
+    if(tokens[count].type == "INTEGER_TOKEN"){
+      var error = {type:"TYPE_MISMATCH_ERROR", line:tokens[count].line};
+      errors.push(error);
+      output = output + "SA: TYPE_MISMATCH_ERROR! On line "
+      + tokens[count].line + ". Found type int, expected type "
+      + type + "\n";
+    }
+    else if(tokens[count].type == "QUOTE_TOKEN"){
+      var error = {type:"TYPE_MISMATCH_ERROR", line:tokens[count].line};
+      errors.push(error);
+      output = output + "SA: TYPE_MISMATCH_ERROR! On line "
+      + tokens[count].line + ". Found type string, expected type "
+      + type + "\n";
+    }
+    else{
+      var error = {type:"TYPE_MISMATCH_ERROR", line:tokens[count].line};
+      errors.push(error);
+      output = output + "SA: TYPE_MISMATCH_ERROR! On line "
+      + tokens[count].line + ". Found type boolean, expected type "
+      + type + "\n";
+    }
   }
 }
 
@@ -177,7 +307,7 @@ function intExpr(){
     CurrentNode.children.push(numNode);
     count++;
     count++;
-    expr();
+    expr("int");
     CurrentNode = NewNode.parent;
   }
   else{

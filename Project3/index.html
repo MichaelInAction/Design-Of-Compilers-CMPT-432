@@ -106,11 +106,12 @@
 							ASSS = ASSS + "~~~Program " + counter + "~~~\n";
 							ASSS = ASSS + recurseThroughTree(FirstNode, 0) + "\n";
 							output = output + "SA: Printing out the new symbol table...\n";
-							output = output + "Type\tID\tScope\n";
+							output = output + "Type\tID\tLine\tScope\n";
 							for(var i = 0; i < symbols.length; i++){
 								for(var j = 0; j < symbols[i].variables.length; j++){
 									output = output + symbols[i].variables[j].type + "\t"
-									+ symbols[i].variables[j].id + "\t" + symbols[i].scopeNum + "\n";
+									+ symbols[i].variables[j].id + "\t" + symbols[i].variables[j].line
+									+ "\t" + symbols[i].scopeNum + "\n";
 								}
 							}
 						}
