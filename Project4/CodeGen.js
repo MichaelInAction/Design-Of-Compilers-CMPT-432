@@ -54,11 +54,16 @@ function generateCode(tokens, warnings, errors){
              "00", "00", "00", "00", "74", "72", "75", "65",
              "00", "66", "61", "6C", "73", "65", "00"];
   console.log("Starting code gen...");
-  block();
+  codeblock();
+  backpatch();
   return output;
 }
 
-function block(){
+function backpatch(){
+
+}
+
+function codeblock(){
   if(errors.length == 0){
     console.log("CG: Block");
     //Next token is a {
@@ -66,48 +71,48 @@ function block(){
     var temp = currentScope;
     maximumScope = maximumScope + 1;
     currentScope = maximumScope;
-    statementList();
+    codestatementList();
     currentScope = temp;
     //Next token is a }
     count++;
   }
 }
 
-function statementList(){
+function codestatementList(){
   if((tokens[count].type == "PRINT_TOKEN") || (tokens[count].type == "ID_TOKEN")
   || (tokens[count].type == "VAR_TYPE_TOKEN") || (tokens[count].type == "WHILE_TOKEN")
   || (tokens[count].type == "IF_TOKEN") || (tokens[count].type == "OPEN_BRACKET_TOKEN")){
     console.log("CG: Statement List");
-    statement();
-    statementList();
+    codestatement();
+    codestatementList();
   }
   else{
     //Epsilon Production
   }
 }
 
-function statement(){
+function codestatement(){
   if(tokens[count].type == "PRINT_TOKEN"){
-    printStatement();
+    codeprintStatement();
   }
   else if(tokens[count].type == "ID_TOKEN"){
-    assignmentStatement();
+    codeassignmentStatement();
   }
   else if(tokens[count].type == "VAR_TYPE_TOKEN"){
-    varDecl();
+    codevarDecl();
   }
   else if(tokens[count].type == "WHILE_TOKEN"){
-    whileStatement();
+    codewhileStatement();
   }
   else if(tokens[count].type == "IF_TOKEN"){
-    ifStatement();
+    codeifStatement();
   }
   else if(tokens[count].type == "OPEN_BRACKET_TOKEN"){
-    block();
+    codeblock();
   }
 }
 
-function printStatement(){
+function codeprintStatement(){
   count++;
   count++;
   if(tokens[count].type == "INTEGER_TOKEN"){
@@ -153,12 +158,31 @@ function printStatement(){
       currentByte = currentByte + 1;
     }
   }
-  expr();
+  else if(tokens[count].type == "BOOL_VAL_TOKEN"){
+    output[currentByte] = "A2";
+    currentByte = currentByte + 1;
+    output[currentByte] = "02";
+    currentByte = currentByte + 1;
+    output[currentByte] = "A0";
+    currentByte = currentByte + 1;
+    if(tokens[count].value == "true"){
+      output[currentByte] = "F4";
+      currentByte = currentByte + 1;
+    }
+    else{
+      output[currentByte] = "F9";
+      currentByte = currentByte + 1;
+    }
+
+    output[currentByte] = "FF";
+    currentByte = currentByte + 1;
+  }
+  codeexpr();
 
   count++;
 }
 
-function assignmentStatement(){
+function codeassignmentStatement(){
   var NewNode = {parent:CurrentNode, value:"Assignment", children:[]};
   CurrentNode.children.push(NewNode);
   CurrentNode = NewNode;
@@ -194,77 +218,71 @@ function assignmentStatement(){
   count++;
   if(errors.length == 0){
     console.log(varType);
-    typeCheckExpr(varType);
+    codetypeCheckExpr(varType);
   }
   else{
-    expr();
+    codeexpr();
   }
   CurrentNode = NewNode.parent;
 }
 
-function varDecl(){
-  var NewNode = {parent:CurrentNode, value:"Variable Declaration", children:[]};
-  CurrentNode.children.push(NewNode);
-  CurrentNode = NewNode;
-  var typeNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
-  CurrentNode.children.push(typeNode);
-  count++;
-  var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
-  CurrentNode.children.push(varNode);
-  var tempNode = CurrentNode;
-  var alreadyDeclared = false;
-  console.log(currentScope.variables.length);
-  for(var i = 0; i < currentScope.variables.length; i++){
-    if(currentScope.variables[i].id == varNode.value){
-      alreadyDeclared = true;
-      console.log("Found a redeclaration error");
-      break;
-    }
+function codevarDecl(){
+
+  var declaredVariable = {name:tokens[count+1].value, type:tokens[count].value, scope:currentScope, tempLoc: "T" + (staticDataTable.length + 1), memoryLoc:""};
+  output[currentByte] = "A9";
+  currentByte = currentByte + 1;
+  if(declaredVariable.type == "boolean"){
+    output[currentByte] = "F9";
+    currentByte = currentByte + 1;
   }
-  if(!alreadyDeclared){
-    var newVar = {id:varNode.value, type:typeNode.value, initialized:false, used:false, line:tokens[count].line};
-    currentScope.variables.push(newVar);
+  else if(declaredVariable.type == "string"){
+    output[currentByte] = "FF";
+    currentByte = currentByte + 1;
   }
   else{
-    var error = {type:"VARIABLE_REDECLARATION_ERROR", line:tokens[count].line};
-    errors.push(error);
-    output = output + "SA: VARIABLE_REDECLARATION_ERROR! Variable " +
-    varNode.value + " in scope " + currentScope.scopeNum + " on line "
-    + tokens[count].line + "\n";
+    output[currentByte] = "00";
+    currentByte = currentByte + 1;
   }
+  output[currentByte] = "8D";
+  currentByte = currentByte + 1;
+  output[currentByte] = declaredVariable.tempLoc;
+  currentByte = currentByte + 1;
+  output[currentByte] = "00";
+  currentByte = currentByte + 1;
+  staticDataTable.push(declaredVariable);
   count++;
-  CurrentNode = NewNode.parent;
+  count++;
 }
 
-function whileStatement(){
+function codewhileStatement(){
   count++;
   var NewNode = {parent:CurrentNode, value:"While", children:[]};
   CurrentNode.children.push(NewNode);
   CurrentNode = NewNode;
-  booleanExpr();
-  block();
+  codebooleanExpr();
+  codeblock();
   CurrentNode = NewNode.parent;
 }
 
-function ifStatement(){
+function codeifStatement(){
   count++;
   var NewNode = {parent:CurrentNode, value:"If", children:[]};
   CurrentNode.children.push(NewNode);
   CurrentNode = NewNode;
-  booleanExpr();
-  block();
+  codebooleanExpr();
+  codeblock();
   CurrentNode = NewNode.parent;
 }
 
-function expr(){
+function codeexpr(){
   if(tokens[count].type == "INTEGER_TOKEN"){
-    intExpr();
+    codeintExpr();
   }
   else if(tokens[count].type == "QUOTE_TOKEN"){
-    stringExpr();
+    codestringExpr();
   }
   else if(tokens[count].type == "OPEN_PAREN_TOKEN" || tokens[count].type == "BOOL_VAL_TOKEN"){
-    booleanExpr();
+    codebooleanExpr();
   }
   else if(tokens[count].type == "ID_TOKEN"){
     var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
@@ -297,15 +315,15 @@ function expr(){
   }
 }
 
-function typeCheckExpr(type){
+function codetypeCheckExpr(type){
   if(tokens[count].type == "INTEGER_TOKEN" && type == "int"){
-    intExpr();
+    codeintExpr();
   }
   else if(tokens[count].type == "QUOTE_TOKEN" && type == "string"){
-    stringExpr();
+    codestringExpr();
   }
   else if((tokens[count].type == "OPEN_PAREN_TOKEN" || tokens[count].type == "BOOL_VAL_TOKEN") && type == "boolean"){
-    booleanExpr();
+    codebooleanExpr();
   }
   else if(tokens[count].type == "ID_TOKEN"){
     var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
@@ -370,7 +388,7 @@ function typeCheckExpr(type){
   }
 }
 
-function intExpr(){
+function codeintExpr(){
   if(tokens[count+1].type == "ADDITION_TOKEN"){
     var NewNode = {parent:CurrentNode, value:"Addition", children:[]};
     CurrentNode.children.push(NewNode);
@@ -379,7 +397,7 @@ function intExpr(){
     CurrentNode.children.push(numNode);
     count++;
     count++;
-    typeCheckExpr("int");
+    codetypeCheckExpr("int");
     CurrentNode = NewNode.parent;
   }
   else{
@@ -389,13 +407,13 @@ function intExpr(){
   }
 }
 
-function stringExpr(){
+function codestringExpr(){
   count++;
-  charList();
+  codecharList();
   count++;
 }
 
-function booleanExpr(){
+function codebooleanExpr(){
   if(tokens[count].type == "OPEN_PAREN_TOKEN"){
     count++;
     if(tokens[count+1].type == "INEQUALITY_COMPARATOR_TOKEN"){
@@ -408,9 +426,9 @@ function booleanExpr(){
       CurrentNode.children.push(NewNode);
       CurrentNode = NewNode;
     }
-    expr();
+    codeexpr();
     count++;
-    expr();
+    codeexpr();
     count++;
     CurrentNode = NewNode.parent;
   }
@@ -421,7 +439,7 @@ function booleanExpr(){
   }
 }
 
-function charList(){
+function codecharList(){
   //This
   var tempString = "";
   while(tokens[count].type != "QUOTE_TOKEN"){
