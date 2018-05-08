@@ -55,12 +55,58 @@ function generateCode(tokens, warnings, errors){
              "00", "66", "61", "6C", "73", "65", "00"];
   console.log("Starting code gen...");
   codeblock();
+
   backpatch();
   return output;
 }
 
 function backpatch(){
-
+  staticStorageByte = currentByte + 1;
+  for(var i = 0; i < staticDataTable.length; i++){
+    console.log(i);
+    var value = "";
+    var temp1 = staticStorageByte % 16;
+    var temp2 = Math.floor(staticStorageByte / 16);
+    if(temp2 > 9){
+      switch(temp2){
+        case 10: value = value + "A"; break;
+        case 11: value = value + "B"; break;
+        case 12: value = value + "C"; break;
+        case 13: value = value + "D"; break;
+        case 14: value = value + "E"; break;
+        case 15: value = value + "F"; break;
+      }
+    }
+    else{
+      value = value + temp2;
+    }
+    if(temp1 > 9){
+      switch(temp1){
+        case 10: value = value + "A"; break;
+        case 11: value = value + "B"; break;
+        case 12: value = value + "C"; break;
+        case 13: value = value + "D"; break;
+        case 14: value = value + "E"; break;
+        case 15: value = value + "F"; break;
+      }
+    }
+    else{
+      value = value + temp1;
+    }
+    console.log(value);
+    staticDataTable[i].memoryLoc = value;
+    staticStorageByte = staticStorageByte + 1;
+  }
+  for(var i = 0; i < currentByte; i++){
+    console.log(i);
+    for(var j = 0; j < staticDataTable.length; j++){
+      console.log(output[i]);
+      console.log(staticDataTable[j].tempLoc);
+      if(output[i] === staticDataTable[j].tempLoc){
+        output[i] = staticDataTable[j].memoryLoc;
+      }
+    }
+  }
 }
 
 function codeblock(){
