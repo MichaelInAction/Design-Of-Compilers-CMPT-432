@@ -17,7 +17,7 @@ function generateCode(tokens, warnings, errors){
   this.errors = errors;
   count = 0;
   currentByte = 0;
-  heapByte = 255;
+  heapByte = 244;
   staticStorageByte = 0;
   staticDataTable = [];
   jumpsTable = [];
@@ -223,53 +223,50 @@ function codeprintStatement(){
     output[currentByte] = "FF";
     currentByte = currentByte + 1;
   }
-  codeexpr();
+  else if(tokens[count].type == "QUOTE_TOKEN"){
+    var word = "";
+    count = count + 1;
+    while(tokens[count].type != "QUOTE_TOKEN"){
+      word = word + tokens[count].value;
+      count++;
+      console.log(count);
+    }
+    heapByte = heapByte - word.length - 1;
+    var newLocation = heapByte;
+    for(var i = 0; i < word.length; i++){
+      output[newLocation] = (word.charCodeAt(i)).toString(16).toUpperCase();
+      newLocation++;
+    }
+    count++;
+    output[currentByte] = "A2";
+    currentByte = currentByte + 1;
+    output[currentByte] = "02";
+    currentByte = currentByte + 1;
+    output[currentByte] = "A0";
+    currentByte = currentByte + 1;
+    output[currentByte] = heapByte.toString(16).toUpperCase();
+    currentByte = currentByte + 1;
+    output[currentByte] = "FF";
+    currentByte = currentByte + 1;
+  }
+  else if(tokens[count].type == "ID_TOKEN"){
 
+  }
   count++;
 }
 
 function codeassignmentStatement(){
-  var NewNode = {parent:CurrentNode, value:"Assignment", children:[]};
-  CurrentNode.children.push(NewNode);
-  CurrentNode = NewNode;
-  var varNode = {parent:CurrentNode, value:tokens[count].value, children:[]};
-  CurrentNode.children.push(varNode);
-  var alreadyDeclared = false;
-  var tempScope = currentScope;
-  var varType = "";
-  while(tempScope != null){
-    console.log("checking scope");
-    for(var i = 0; i < tempScope.variables.length; i++){
-      console.log(tempScope.variables[i].id);
-      if(tempScope.variables[i].id == varNode.value){
-        varType = tempScope.variables[i].type;
-        tempScope.variables[i].initialized = true;
-        alreadyDeclared = true;
-        break;
-      }
+  console.log(tokens[count].value);
+  var staticTableLocation = 0;
+  for(var i = 0; i < staticDataTable.length; i++){
+    if(tokens[count].value === staticDataTable[i]){
+
     }
-    if(alreadyDeclared){
-      break;
-    }
-    tempScope = tempScope.outerScope;
   }
-  if(!alreadyDeclared){
-    var error = {type:"UNDECLARED_VARIABLE_ERROR", line:tokens[count].line};
-    errors.push(error);
-    output = output + "SA: UNDECLARED_VARIABLE_ERROR! Variable " +
-    varNode.value + " in scope " + currentScope.scopeNum + " on line "
-    + tokens[count].line + "\n";
-  }
+
   count++;
   count++;
-  if(errors.length == 0){
-    console.log(varType);
-    codetypeCheckExpr(varType);
-  }
-  else{
-    codeexpr();
-  }
-  CurrentNode = NewNode.parent;
+  codeexpr();
 }
 
 function codevarDecl(){
@@ -492,6 +489,4 @@ function codecharList(){
     tempString = tempString + tokens[count].value;
     count++;
   }
-  var NewNode = {parent:CurrentNode, value:tempString, children:[]};
-  CurrentNode.children.push(NewNode);
 }
