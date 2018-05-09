@@ -325,7 +325,36 @@ function codeassignmentStatement(){
   if(staticDataTable[index].type == "int"){
     output[currentByte] = "A9";
     currentByte = currentByte + 1;
-    output[currentByte] = "";
+    var value = "";
+    var temp1 = tokens[count+2].value % 16;
+    var temp2 = Math.floor(tokens[count+2].value / 16);
+    if(temp2 > 9){
+      switch(temp2){
+        case 10: value = value + "A"; break;
+        case 11: value = value + "B"; break;
+        case 12: value = value + "C"; break;
+        case 13: value = value + "D"; break;
+        case 14: value = value + "E"; break;
+        case 15: value = value + "F"; break;
+      }
+    }
+    else{
+      value = value + temp2;
+    }
+    if(temp1 > 9){
+      switch(temp1){
+        case 10: value = value + "A"; break;
+        case 11: value = value + "B"; break;
+        case 12: value = value + "C"; break;
+        case 13: value = value + "D"; break;
+        case 14: value = value + "E"; break;
+        case 15: value = value + "F"; break;
+      }
+    }
+    else{
+      value = value + temp1;
+    }
+    output[currentByte] = value;
     currentByte = currentByte + 1;
     output[currentByte] = "8D";
     currentByte = currentByte + 1;
@@ -333,6 +362,9 @@ function codeassignmentStatement(){
     currentByte = currentByte + 1;
     output[currentByte] = "00";
     currentByte = currentByte + 1;
+    count++;
+    count++;
+    count++;
   }
   else if(staticDataTable[index].type == "boolean"){
     if(tokens[count+2].value == "true"){
@@ -359,13 +391,36 @@ function codeassignmentStatement(){
       output[currentByte] = "00";
       currentByte = currentByte + 1;
     }
+    count++;
+    count++;
+    count++;
   }
   else{
-
+    var word = "";
+    count = count + 3;
+    while(tokens[count].type != "QUOTE_TOKEN"){
+      word = word + tokens[count].value;
+      count++;
+      console.log(count);
+    }
+    heapByte = heapByte - word.length - 1;
+    var newLocation = heapByte;
+    for(var i = 0; i < word.length; i++){
+      output[newLocation] = (word.charCodeAt(i)).toString(16).toUpperCase();
+      newLocation++;
+    }
+    count++;
+    output[currentByte] = "A9";
+    currentByte = currentByte + 1;
+    output[currentByte] = heapByte.toString(16).toUpperCase();
+    currentByte = currentByte + 1;
+    output[currentByte] = "8D";
+    currentByte = currentByte + 1;
+    output[currentByte] = staticDataTable[index].tempLoc;
+    currentByte = currentByte + 1;
+    output[currentByte] = "00";
+    currentByte = currentByte + 1;
   }
-  count++;
-  count++;
-  count++;
   //codeexpr();
 }
 
